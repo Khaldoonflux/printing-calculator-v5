@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>حاسبة تكلفة الطباعة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f14;
+    --surface: #1a1a24;
+    --card: #22222f;
+    --accent: #f5a623;
+    --accent2: #e05c2a;
+    --gold: #f5c842;
+    --text: #f0eef8;
+    --muted: #7a7890;
+    --border: #2e2e40;
+    --input-bg: #13131c;
+    --green: #3ecf8e;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* iOS Safari Compatibility Fixes */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  input, button {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on focus on iPhone */
+  }
+  
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 100px; /* Space for floating bar */
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a0a2e 0%, #16112a 50%, #0f0f1e 100%);
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-icon { font-size: 36px; margin-bottom: 8px; display: block; position: relative; z-index: 1; }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative; z-index: 1;
+  }
+  .header p { font-size: 13px; color: var(--muted); margin-top: 4px; position: relative; z-index: 1; }
+
+  .container { padding: 16px; max-width: 500px; margin: 0 auto; }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 24px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  /* Input row */
+  .input-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .input-row:last-child { border-bottom: none; }
+
+  .row-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .row-label { flex: 1; font-size: 16px; font-weight: 600; color: var(--text); }
+
+  /* Stepper / Input Control */
+  .stepper-container {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .stepper-btn {
+    width: 32px; height: 42px;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .row-input {
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    width: 75px;
+    padding: 8px 4px;
+    outline: none;
+  }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; padding: 14px 16px; gap: 12px; }
+  .toggle-label { flex: 1; font-size: 16px; font-weight: 600; }
+  .toggle {
+    width: 48px; height: 26px;
+    background: var(--border);
+    border-radius: 13px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+    border: none; outline: none;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute; width: 20px; height: 20px;
+    background: white; border-radius: 50%;
+    top: 3px; right: 3px; transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(-22px); }
+
+  .foil-section { display: none; border-top: 1px solid var(--border); }
+  .foil-section.visible { display: block; }
+
+  /* Results */
+  .results-card {
+    background: linear-gradient(135deg, #1d1430 0%, #1a1428 100%);
+    border-radius: var(--radius);
+    border: 1px solid rgba(245,166,35,0.25);
+    padding: 20px;
+    margin-top: 8px;
+  }
+
+  .result-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .result-label { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .result-value { font-size: 18px; font-weight: 700; color: var(--text); }
+
+  .result-main { text-align: center; padding: 16px 0 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .result-main-value { font-size: 38px; font-weight: 900; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .result-total-iqd { text-align: center; background: rgba(62,207,142,0.08); border-radius: var(--radius-sm); padding: 12px; margin-top: 12px; }
+  .result-total-iqd .value { font-size: 24px; font-weight: 900; color: var(--green); }
+
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .breakdown-item { background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--border); }
+  .breakdown-item .b-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .breakdown-item .b-value { font-size: 18px; font-weight: 700; color: var(--text); }
+
+  /* Color badges */
+  .ic-orange { background: rgba(245,166,35,0.15); }
+  .ic-blue { background: rgba(80,140,255,0.15); }
+  .ic-purple { background: rgba(160,90,255,0.15); }
+  .ic-green { background: rgba(62,207,142,0.15); }
+  .ic-gold { background: rgba(245,200,66,0.15); }
+
+  /* Floating Bar - Fixed for iOS */
+  .floating-total {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(135deg, #1d1430 0%, #1a1428 100%);
+    border-top: 2px solid var(--accent);
+    /* Extra padding for iPhone notch/home bar */
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+    z-index: 9999;
+    display: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .floating-total.show { display: block; }
+  .floating-content { max-width: 500px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .floating-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-icon">🖨️</span>
+  <h1>حاسبة تكلفة الطباعة</h1>
+  <p>احسب تكلفة أوردر الطباعة بدقة وسرعة</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="input-row">
+      <div class="row-icon ic-gold">💰</div>
+      <div class="row-label">سعر صرف الدولار</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'exchangeRate', 50, true)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'exchangeRate', 50, true)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="exchangeRate" value="1,550" onchange="updateExchangeDisplay()" oninput="formatInput(this)">
+        <button class="stepper-btn" onmousedown="startStep(event, 'exchangeRate', -50, true)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'exchangeRate', -50, true)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">⚙️ معلومات الأوردر</div>
+  <div class="card">
+    <div class="input-row">
+      <div class="row-icon ic-orange">📋</div>
+      <div class="row-label">عدد المطبوع</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'printQty', 500)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'printQty', 500)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="printQty" value="0" oninput="formatInput(this); updateAutoFields();">
+        <button class="stepper-btn" onmousedown="startStep(event, 'printQty', -500)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'printQty', -500)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="row-icon ic-blue">🎨</div>
+      <div class="row-label">عدد التصميم على البند</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'designPerItem', 1)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'designPerItem', 1)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="designPerItem" value="0" oninput="formatInput(this); updateAutoFields();">
+        <button class="stepper-btn" onmousedown="startStep(event, 'designPerItem', -1)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'designPerItem', -1)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="row-icon ic-purple">📄</div>
+      <div class="row-label">عدد الورق</div>
+      <div class="stepper-container">
+        <input class="row-input" type="text" id="paperQty" value="0" readonly style="background: transparent; width: 139px; border-left: none; border-right: none;">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="row-icon ic-purple">📦</div>
+      <div class="row-label">عدد البند المطلوب</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'itemQty', 0.5)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'itemQty', 0.5)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="itemQty" value="0" step="0.5" oninput="formatInput(this)">
+        <button class="stepper-btn" onmousedown="startStep(event, 'itemQty', -0.5)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'itemQty', -0.5)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="row-icon ic-green">💵</div>
+      <div class="row-label">سعر البند ($)</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'itemPrice', 1)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'itemPrice', 1)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="itemPrice" value="35" step="0.5" oninput="formatInput(this)">
+        <button class="stepper-btn" onmousedown="startStep(event, 'itemPrice', -1)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'itemPrice', -1)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">🏭 تكاليف المواد (IQD)</div>
+  <div class="card">
+    <div class="input-row"><div class="row-label">الطبع</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costPrint', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costPrint', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costPrint" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costPrint', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costPrint', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">البليت</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costPlate', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costPlate', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costPlate" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costPlate', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costPlate', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">الكص</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costCut', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costCut', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costCut" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costCut', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costCut', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">السلفان</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costCello', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costCello', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costCello" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costCello', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costCello', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">القالب</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costMold', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costMold', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costMold" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costMold', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costMold', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">اللصق</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costGlue', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costGlue', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costGlue" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costGlue', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costGlue', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">سبوت يوڤي</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costUV', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costUV', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costUV" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costUV', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costUV', -1000)" ontouchend="stopStep()">-</button></div></div>
+    <div class="input-row"><div class="row-label">مصاريف اخرى</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costOther', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costOther', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costOther" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costOther', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costOther', -1000)" ontouchend="stopStep()">-</button></div></div>
+  </div>
+
+  <div class="section-title">✨ الفويل (IQD)</div>
+  <div class="card">
+    <div class="toggle-row">
+      <div class="toggle-label">تفعيل الفويل</div>
+      <button class="toggle" id="fToggle" onclick="toggleFoil()"></button>
+    </div>
+    <div class="foil-section" id="fSec">
+      <div class="input-row"><div class="row-label">عدد البند للفويل</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'fQty', 100)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'fQty', 100)" ontouchend="stopStep()">+</button><input class="row-input" id="fQty" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'fQty', -100)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'fQty', -100)" ontouchend="stopStep()">-</button></div></div>
+      <div class="input-row"><div class="row-label">الطول/العرض (متر)</div><div style="display:flex; gap:5px;"><input class="row-input" id="fL" value="0" style="width:60px;" oninput="formatInput(this)"><input class="row-input" id="fW" value="0" style="width:60px;" oninput="formatInput(this)"></div></div>
+      <div class="input-row"><div class="row-label">سعر الفويل (IQD)</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'fPrice', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'fPrice', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="fPrice" value="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'fPrice', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'fPrice', -1000)" ontouchend="stopStep()">-</button></div></div>
+    </div>
+  </div>
+
+  <div id="resultsSection" style="display:none; margin-top:20px;">
+    <div class="section-title">📊 النتائج</div>
+    <div class="breakdown-grid">
+      <div class="breakdown-item"><div class="b-label">الإجمالي بدون فويل</div><div class="b-value"><span id="rTotalNoFoil">—</span> <span class="b-unit">$</span></div></div>
+      <div class="breakdown-item"><div class="b-label">تكلفة الفويل</div><div class="b-value"><span id="rFoilCost">—</span> <span class="b-unit">$</span></div></div>
+      <div class="breakdown-item"><div class="b-label">الإجمالي النهائي</div><div class="b-value"><span id="rTotal">—</span> <span class="b-unit">$</span></div></div>
+      <div class="breakdown-item"><div class="b-label">عدد القطع</div><div class="b-value"><span id="rPieces">—</span> <span class="b-unit">قطعة</span></div></div>
+    </div>
+
+    <div class="results-card" style="margin-top:12px;">
+      <div class="result-main">
+        <div class="result-main-label">سعر القطعة الواحدة</div>
+        <div class="result-main-value" id="rPricePerPieceIQD" style="background: linear-gradient(135deg, var(--green), #2aad72); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">—</div>
+        <div style="font-size:14px; color:var(--muted);">دينار عراقي</div>
+      </div>
+      <div class="result-main" style="border-top:none; padding-top:12px;">
+        <div class="result-main-label">سعر القطعة الواحدة</div>
+        <div class="result-main-value" id="rPricePerPiece">—</div>
+        <div style="font-size:14px; color:var(--muted);">دولار أمريكي</div>
+      </div>
+      <div class="result-total-iqd">
+        <div class="label">💎 إجمالي تكلفة الطلب</div>
+        <div class="value" id="rTotalIQD">—</div>
+        <div id="rTotalUSD" style="font-size:15px; color:rgba(62,207,142,0.6); margin-top:4px;">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="floating-total" id="floatingTotal">
+  <div class="floating-content">
+    <div style="text-align: right;">
+      <div class="floating-label">💰 للقطعة الواحدة</div>
+      <div id="floatPPPIQD" style="font-size: 22px; font-weight: 900; color: var(--green); line-height: 1.2;">— IQD</div>
+      <div id="floatPPPUSD" style="font-size: 14px; font-weight: 400; color: var(--muted); line-height: 1.2;">— $</div>
+    </div>
+    <div style="text-align: left;">
+      <div class="floating-label">💎 إجمالي الطلب</div>
+      <div id="floatTotalIQD" style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">— IQD</div>
+      <div id="floatTotalUSD" style="font-size: 12px; color: var(--muted);">— USD</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let fEnabled = false;
+  let stepInterval = null;
+  let stepTimeout = null;
+  let lastActionTime = 0;
+
+  function formatNumber(n) {
+    if (n === "" || isNaN(n)) return n;
+    let parts = n.toString().split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  }
+
+  function parseNumber(s) {
+    return parseFloat(s.toString().replace(/,/g, "")) || 0;
+  }
+
+  function formatInput(el) {
+    let cursor = el.selectionStart;
+    let oldLen = el.value.length;
+    let val = el.value.replace(/,/g, "");
+    if (!isNaN(val) || val === "") {
+        el.value = formatNumber(val);
+    }
+    let newLen = el.value.length;
+    el.setSelectionRange(cursor + (newLen - oldLen), cursor + (newLen - oldLen));
+    calculate();
+  }
+
+  function step(id, v, isExchange = false) {
+    let el = document.getElementById(id);
+    let current = parseNumber(el.value);
+    el.value = formatNumber(Math.max(0, current + v));
+    if (isExchange) updateExchangeDisplay();
+    if (id === 'printQty' || id === 'designPerItem') updateAutoFields();
+    calculate();
+  }
+
+  function startStep(e, id, v, isExchange = false) {
+    if (e.type === 'mousedown' && 'ontouchstart' in window) return;
+    e.preventDefault();
+    let now = Date.now();
+    if (now - lastActionTime < 150) return;
+    lastActionTime = now;
+
+    step(id, v, isExchange);
+    stopStep();
+    stepTimeout = setTimeout(() => {
+      stepInterval = setInterval(() => {
+        step(id, v, isExchange);
+      }, 100); 
+    }, 650);
+  }
+
+  function stopStep() {
+    clearTimeout(stepTimeout);
+    clearInterval(stepInterval);
+  }
+
+  function toggleFoil() {
+    fEnabled = !fEnabled;
+    document.getElementById('fToggle').classList.toggle('on', fEnabled);
+    document.getElementById('fSec').style.display = fEnabled ? 'block' : 'none';
+    calculate();
+  }
+
+  function updateExchangeDisplay() {
+    calculate();
+  }
+
+  function updateAutoFields() {
+    let qty = v('printQty');
+    let des = v('designPerItem');
+    let paperQty = des > 0 ? Math.ceil(qty / des) : 0;
+    document.getElementById('paperQty').value = formatNumber(paperQty);
+    
+    let itemQty = paperQty / 100;
+    document.getElementById('itemQty').value = formatNumber(itemQty);
+  }
+
+  function v(id) { return parseNumber(document.getElementById(id).value); }
+  function fmt(n, dec=2) { return n.toLocaleString('en-US', {minimumFractionDigits: dec, maximumFractionDigits: dec}); }
+
+  function calculate() {
+    let ex = v('exchangeRate');
+    let qty = v('printQty');
+    let itemQty = v('itemQty');
+    let itemPrice = v('itemPrice');
+    
+    let iqdMaterials = v('costPrint') + v('costPlate') + v('costCut') + v('costCello') + v('costMold') + v('costGlue') + v('costUV') + v('costOther');
+    let materialsInUSD = iqdMaterials / ex;
+
+    let itemResultUSD = itemQty * itemPrice;
+    let totalMaterialsUSD = materialsInUSD + itemResultUSD;
+    let pieces = qty; 
+    
+    let foilCostIQD = fEnabled ? v('fPrice') : 0;
+    let foilCostUSD = foilCostIQD / ex;
+
+    let totalUSD = totalMaterialsUSD + foilCostUSD;
+    let ppp = pieces > 0 ? totalUSD / pieces : 0;
+    let pppIQD = ppp * ex;
+
+    document.getElementById('rTotalNoFoil').textContent = fmt(totalMaterialsUSD);
+    document.getElementById('rFoilCost').textContent = fEnabled ? fmt(foilCostUSD) : '0.00';
+    document.getElementById('rTotal').textContent = fmt(totalUSD);
+    document.getElementById('rPieces').textContent = fmt(pieces, 0);
+    document.getElementById('rPricePerPiece').textContent = fmt(ppp, 4);
+    document.getElementById('rPricePerPieceIQD').textContent = fmt(pppIQD, 0);
+    document.getElementById('rTotalIQD').textContent = fmt(totalUSD * ex, 0) + ' IQD';
+    document.getElementById('rTotalUSD').textContent = fmt(totalUSD, 2) + ' USD';
+    
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('floatPPPIQD').textContent = fmt(pppIQD, 0) + ' IQD';
+    document.getElementById('floatPPPUSD').textContent = fmt(ppp, 4) + ' $';
+    document.getElementById('floatTotalIQD').textContent = fmt(totalUSD * ex, 0) + ' IQD';
+    document.getElementById('floatTotalUSD').textContent = fmt(totalUSD, 2) + ' USD';
+    document.getElementById('floatingTotal').classList.add('show');
+  }
+
+  calculate();
+</script>
+
+</body>
+</html>
