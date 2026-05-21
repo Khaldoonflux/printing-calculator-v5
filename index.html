@@ -82,6 +82,14 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+  /* Divider only */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0 12px;
+    width: 100%;
+  }
+
   /* Card */
   .card {
     background: var(--card);
@@ -304,6 +312,19 @@
     <div class="input-row"><div class="row-label">مصاريف اخرى</div><div class="stepper-container"><button class="stepper-btn" onmousedown="startStep(event, 'costOther', 1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costOther', 1000)" ontouchend="stopStep()">+</button><input class="row-input" id="costOther" value="" placeholder="0" oninput="formatInput(this)"><button class="stepper-btn" onmousedown="startStep(event, 'costOther', -1000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'costOther', -1000)" ontouchend="stopStep()">-</button></div></div>
   </div>
 
+  <div class="section-divider"></div>
+  <div class="card">
+    <div class="input-row">
+      <div class="row-icon ic-green">📈</div>
+      <div class="row-label">الارباح</div>
+      <div class="stepper-container">
+        <button class="stepper-btn" onmousedown="startStep(event, 'profitValue', 10000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'profitValue', 10000)" ontouchend="stopStep()">+</button>
+        <input class="row-input" type="text" id="profitValue" value="" placeholder="0" oninput="formatInput(this)">
+        <button class="stepper-btn" onmousedown="startStep(event, 'profitValue', -10000)" onmouseup="stopStep()" onmouseleave="stopStep()" ontouchstart="startStep(event, 'profitValue', -10000)" ontouchend="stopStep()">-</button>
+      </div>
+    </div>
+  </div>
+
   <div class="section-title">✨ الفويل (IQD)</div>
   <div class="card">
     <div class="toggle-row">
@@ -326,22 +347,40 @@
       <div class="breakdown-item"><div class="b-label">عدد القطع</div><div class="b-value"><span id="rPieces">—</span> <span class="b-unit">قطعة</span></div></div>
     </div>
 
-    <div class="results-card" style="margin-top:12px;">
-      <div class="result-main">
-        <div class="result-main-label">سعر القطعة الواحدة</div>
-        <div class="result-main-value" id="rPricePerPieceIQD" style="background: linear-gradient(135deg, var(--green), #2aad72); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">—</div>
-        <div style="font-size:14px; color:var(--muted);">دينار عراقي</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+
+      <!-- Card A -->
+      <div class="results-card" style="margin-top:0;">
+        <div class="result-main">
+          <div class="result-main-label">كلفة المفرد</div>
+          <div class="result-main-value" id="rPricePerPieceIQD" style="background: linear-gradient(135deg, var(--green), #2aad72); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">—</div>
+          <div style="font-size:14px; color:var(--muted);">دينار عراقي</div>
+          <div class="result-main-value" id="rPricePerPiece" style="font-size:20px; margin-top:6px;">—</div>
+          <div style="font-size:14px; color:var(--muted);">دولار أمريكي</div>
+        </div>
+        <div class="result-total-iqd">
+          <div class="label">إجمالي الكلفة</div>
+          <div class="value" id="rTotalIQD">—</div>
+          <div id="rTotalUSD" style="font-size:15px; color:rgba(62,207,142,0.6); margin-top:4px;">—</div>
+        </div>
       </div>
-      <div class="result-main" style="border-top:none; padding-top:12px;">
-        <div class="result-main-label">سعر القطعة الواحدة</div>
-        <div class="result-main-value" id="rPricePerPiece">—</div>
-        <div style="font-size:14px; color:var(--muted);">دولار أمريكي</div>
+
+      <!-- Card B -->
+      <div class="results-card" style="margin-top:0;">
+        <div class="result-main">
+          <div class="result-main-label">سعر المفرد</div>
+          <div class="result-main-value" id="rPricePerPieceIQD_B" style="background: linear-gradient(135deg, var(--green), #2aad72); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">—</div>
+          <div style="font-size:14px; color:var(--muted);">دينار عراقي</div>
+          <div class="result-main-value" id="rPricePerPiece_B" style="font-size:20px; margin-top:6px;">—</div>
+          <div style="font-size:14px; color:var(--muted);">دولار أمريكي</div>
+        </div>
+        <div class="result-total-iqd">
+          <div class="label">إجمالي السعر</div>
+          <div class="value" id="rTotalIQD_B">—</div>
+          <div id="rTotalUSD_B" style="font-size:15px; color:rgba(62,207,142,0.6); margin-top:4px;">—</div>
+        </div>
       </div>
-      <div class="result-total-iqd">
-        <div class="label">💎 إجمالي تكلفة الطلب</div>
-        <div class="value" id="rTotalIQD">—</div>
-        <div id="rTotalUSD" style="font-size:15px; color:rgba(62,207,142,0.6); margin-top:4px;">—</div>
-      </div>
+
     </div>
   </div>
 </div>
@@ -486,6 +525,16 @@
     document.getElementById('rPricePerPieceIQD').textContent = fmt(pppIQD, 0);
     document.getElementById('rTotalIQD').textContent = fmt(totalUSD * ex, 0) + ' IQD';
     document.getElementById('rTotalUSD').textContent = fmt(totalUSD, 2) + ' USD';
+    // Card B — سعر القطعة الواحدة (with profit added)
+    let profitIQD = v('profitValue');
+    let profitUSD = ex > 0 ? profitIQD / ex : 0;
+    let totalWithProfit = totalUSD + profitUSD;
+    let pppWithProfit = pieces > 0 ? totalWithProfit / pieces : 0;
+    let pppWithProfitIQD = pppWithProfit * ex;
+    document.getElementById('rPricePerPiece_B').textContent = fmt(pppWithProfit, 4);
+    document.getElementById('rPricePerPieceIQD_B').textContent = fmt(pppWithProfitIQD, 0);
+    document.getElementById('rTotalIQD_B').textContent = fmt(totalWithProfit * ex, 0) + ' IQD';
+    document.getElementById('rTotalUSD_B').textContent = fmt(totalWithProfit, 2) + ' USD';
     
     document.getElementById('resultsSection').style.display = 'block';
     document.getElementById('floatPPPIQD').textContent = fmt(pppIQD, 0) + ' IQD';
